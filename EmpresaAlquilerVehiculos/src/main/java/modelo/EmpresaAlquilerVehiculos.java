@@ -69,8 +69,8 @@ public class EmpresaAlquilerVehiculos {
     }
 
     /**
-     * Obtiene todos los alquileres de la empresa
-     * @return lista de alquileres
+     * Método que obtiene todos los alquileres de la empresa utilizando lambda
+     * @return lista de alquileres de la empresa
      */
     public List<Alquiler> obtenerTodosAlquileresEmpresa(){
         return clientes
@@ -80,6 +80,10 @@ public class EmpresaAlquilerVehiculos {
                 .toList();
     }
 
+    /**
+     * Método que obtiene todos los alquileres de la empresa utilizando referencia a metodos
+     * @return lista de alquileres de la empresa
+     */
     public List<Alquiler> obtenerTodosAlquileresEmpresa2() {
         return clientes
                 .stream()

@@ -9,6 +9,7 @@ public class mainEmpresaAlquilerVehiculos {
 
     public static void main(String[] args) {
         MostrarDatos.mostrarEmpresa(empresa);
+        MostrarDatos.mostrarTodasLasMarcasDeFurgonetasOrdenadasAlfabéticamente(empresa);
     }
 
     public static EmpresaAlquilerVehiculos insertarDatos() {

@@ -444,7 +444,24 @@ BinaryOperator<Integer> max = (a, b) -> a > b ? a : b;
 
 - Podemos realizar interfaces funcionales personalizadas. Debemos de asegurarnos que sólo tengan un método abstracto
 y debedos de etiquetarlas como `@FunctionalInterface`
+- Recordamos el primer ejemplo, es una interfaz funcional personalizada:
+```java
+@FunctionalInterface
+interface Operacion {
+    int aplicar(int a, int b);
+}
 
+// Implementación usando lambda
+Operacion suma = (a, b) -> a + b;
+
+// Uso
+int resultado = suma.aplicar(5, 3);
+System.out.println(resultado); // 8
+
+// Otra implementación: Multiplicacióm
+Operacion multiplicar = (a, b) -> a * b;
+System.out.println(multiplicar.aplicar(4, 6)); // 24
+```
 ---
 
 # 🚀 A partir de aquí usamos el proyecto práctico de Empresa de alquiler de vehículos
@@ -468,13 +485,18 @@ Un Stream es una secuencia de datos que permite procesarlos de forma declarativa
 ---
 
 ## 🔹 Operaciones intermedias
-- Son operaciones que devuelven un Stream modificando el actual. Se pueden encadenar varias operaciones intermedias.
+- Son operaciones que devuelven un Stream resultante de una modificación del actual. Se pueden encadenar varias operaciones intermedias.
 
 ### filter(Predicate, <Stream<trueElements>>)
 
 Filtra elementos
 
 ```java
+/**
+ * Metodo estático que filtra los vehiculos disponibles.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return lista con los vehiculos disponibles
+ */
 public static List<Vehiculo> fitrarVehiculosDisponibles(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
@@ -491,6 +513,11 @@ Transforma el stream a otro stream con otros elementos como resultado de la modi
 
 
 ```java
+/**
+ * Metodo estático que filtra las distintas marcas de las furgonetas.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return lista con las marcas de las furgonetas
+ */
 public static List<String> marcasDeFurgonetas(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
@@ -514,13 +541,17 @@ public static List<String> marcasDeFurgonetas(EmpresaAlquilerVehiculos empresa){
 ### mapToInt / mapToDouble / mapToLong (Permiten operaciones sobre tipos primitivos y mejoran el rendimiento)
 
 ```java
+/**
+ * Metodo estático que calcula la media de kilometros de los vehiculos de la empresa.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return media de kilometros de los vehiculos o 0 si no hay vehiculos
+ */
 public static double mediaKilometrosVehiculosEmpresa(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
             .mapToInt(Vehiculo::getKilometros)
             .average() //La media no puede ser int, devuelve un Optional<Double>
             .orElse(0);
-
 }
 ```
 
@@ -531,7 +562,10 @@ public static double mediaKilometrosVehiculosEmpresa(EmpresaAlquilerVehiculos em
 Aplana estructuras, permite unir streams de diferentes niveles en uno solo
 
 ```java
-// Utilizando expresión lambda
+/**
+ * Método que obtiene todos los alquileres de la empresa utilizando lambda
+ * @return lista de alquileres de la empresa
+ */
 public List<Alquiler> obtenerTodosAlquileresEmpresa(){
     return clientes
             .stream()
@@ -540,14 +574,17 @@ public List<Alquiler> obtenerTodosAlquileresEmpresa(){
             .toList();
 }
 
-//Utilizando referencia a métodos
+/**
+ * Método que obtiene todos los alquileres de la empresa utilizando referencia a metodos
+ * @return lista de alquileres de la empresa
+ */
 public List<Alquiler> obtenerTodosAlquileresEmpresa2() {
     return clientes
             .stream()
             .map(Cliente::getAlquileres)
             .flatMap(List::stream)
             .toList();
-}
+
 ```
 
 ---
@@ -557,7 +594,11 @@ public List<Alquiler> obtenerTodosAlquileresEmpresa2() {
 Elimina duplicados de un stream. Para funcionar, los objetos deben implementar el método `equals` y `hashCode`.
 
 ```java
-// Ya lo hemos utilizado en la explicación de map
+/**
+ * Metodo estático que filtra las distintas marcas de las furgonetas.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return lista con las marcas de las furgonetas
+ */
 public static List<String> marcasDeFurgonetas(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
@@ -588,11 +629,11 @@ public List<Vehiculo> ordenarVehiculosPorKilometros(EmpresaAlquilerVehiculos emp
 }
 
 /**
- * Metodo que ordena los vehiculos por kilometros de menor a mayor utilizando el metodo comparing de Comparator
+ * Metodo estático que ordena los vehiculos por kilometros de menor a mayor utilizando el metodo comparing de Comparator
  * @param empresa de tipo EmpresaAlquilerVehiculos
  * @return lista de vehiculos ordenados por kilometros de menor a mayor
  */
-public List<Vehiculo> ordenarVehiculosPorKilometros2(EmpresaAlquilerVehiculos empresa){
+public static List<Vehiculo> ordenarVehiculosPorKilometros2(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
             .sorted(Comparator.comparing(Vehiculo::getKilometros))
@@ -601,9 +642,9 @@ public List<Vehiculo> ordenarVehiculosPorKilometros2(EmpresaAlquilerVehiculos em
 
 
 /**
- * Método que Metodo que ordena los vehiculos por kilometros de mayor a menor utilizando el metodo comparing de Comparator e invirtiendo el orden con el método reversed()
+ * Método estático que ordena los vehiculos por kilometros de mayor a menor utilizando el metodo comparing de Comparator e invirtiendo el orden con el método reversed()
  * @param empresa de tipo EmpresaAlquilerVehiculos
- * @return lista de vehiculos ordenados por kilometros de mayor a menor 
+ * @return lista de vehiculos ordenados por kilometros de mayor a menor
  */
 public List<Vehiculo> ordenarVehiculosPorKilometros3(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
@@ -620,7 +661,12 @@ No modifica el Stream, pero permite realizar operaciones secundarias con los ele
 
 
 ```java
-public List<Vehiculo> vehiculosDisponiblesDebug(EmpresaAlquilerVehiculos empresa){
+/**
+ * Método que filtra los vehiculos disponibles y muestra un mensaje por consola para cada vehiculo antes y despues del filtro
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return lista de vehiculos disponibles
+ */
+public static List<Vehiculo> vehiculosDisponiblesDebug(EmpresaAlquilerVehiculos empresa){
     return empresa.getVehiculos()
             .stream()
             .peek(vehiculo -> System.out.println("ANTES filtro: " + vehiculo.getMatricula()))
@@ -631,51 +677,100 @@ public List<Vehiculo> vehiculosDisponiblesDebug(EmpresaAlquilerVehiculos empresa
 ```
 ---
 
-### limit
+### limit <StreamActual, StreamRecortadoConPrimerosElementos>
+Devuelve solo los primeros n elementos del Stream. 
 
 ```java
-empresa.getVehiculos()
-    .stream()
-    .limit(3)
-    .toList();
+/**
+ * Método estático que obtiene los clientes más jóvenes de la empresa
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @param numeroClientesAObtener número de clientes a obtener
+ * @return lista de clientes más jóvenes
+ */
+public static List<Cliente> obtenerLosClientesMasJovenes( EmpresaAlquilerVehiculos empresa, int numeroClientesAObtener){
+    return empresa
+            .getClientes()
+            .stream()
+            .sorted(Comparator.comparingInt(Cliente::getEdad))
+            .limit(Math.max(0, numeroClientesAObtener)) //Evitamos que lance una excepción en caso de que se pase un numero negativo
+            .toList();
+}
 ```
 
 ---
 
-### skip
+### skip <StreamActual, StreamRecortadoOmitiendoPrimerosElementos>
+Devuelve un Stream que omite los primeros n elementos
+
+Muy útil para implementar paginación. 
 
 ```java
-empresa.getVehiculos()
-    .stream()
-    .skip(2)
-    .toList();
+//Útil para mostrar los vehículos por páginas en el frontend. 
+/**
+ * Método estático que permite paginar los vehículos de la empresa
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @param pagina de tipo int
+ * @param tamanioPagina de tipo int
+ * @return lista de vehículos del tamaño indicado en la página indicada
+ */
+public static List<Vehiculo> obtenerVehiculosPaginados(EmpresaAlquilerVehiculos empresa, int pagina, int tamanioPagina) {
+    return empresa.getVehiculos()
+            .stream()
+            .skip((long) (pagina - 1) * tamanioPagina)
+            .limit(tamanioPagina)
+            .toList();
+}
 ```
 
 ---
 
-### concat
-
+### concat <Stream1, Stream2, StreamFinalFusionado>
+Es un método `estático` que concatena dos streams, no es un método de Stream.
 ```java
-Stream.concat(
-    empresa.getVehiculos().stream(),
-    empresa.getVehiculos().stream()
-).toList();
+//La siguiente operación puede ser útil para evaluar una posible fusión o colaboración entre 2 negocios
+/**
+ * Método estático que obtiene todos los clientes de 2 empresas
+ * @param empresa1 de tipo EmpresaAlquilerVehiculos
+ * @param empresa2 de tipo EmpresaAlquilerVehiculos
+ * @return lista de clientes de las 2 empresas
+ */
+public static List<Cliente> todosLosClientesDe2Empresas(EmpresaAlquilerVehiculos empresa1, EmpresaAlquilerVehiculos empresa2){
+    return Stream.concat(empresa1.getClientes().stream(),
+                    empresa2.getClientes().stream())
+            .distinct()
+            .toList();
+}
 ```
 
 ---
 
 ## 🔹 Operaciones terminales
+- Producen un resultado o un efecto secundario
+- Finalizan el stream
+- Sólo pueden ejecutarse una vez por stream
 
-### forEach
+## 🔹 Principales operaciones terminales:
+
+### forEach <Consumer<T>>
+Aplica una acción a cada elemento del Stream
 
 ```java
-empresa.getVehiculos()
-    .forEach(System.out::println);
+/**
+ * Método estático que muestra las marcas de todas las furgonetas ordenadas alfabéticamente
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ */
+public static void mostrarTodasLasMarcasDeFurgonetasOrdenadasAlfabéticamente(EmpresaAlquilerVehiculos empresa) {
+    System.out.println("Marcas de furgonetas ordenadas alfabéticamente:");
+    LogicaEmpresaAlquiler.marcasDeFurgonetas(empresa)
+            .stream()
+            .sorted()
+            .forEach(System.out::println);
+}
 ```
 
 ---
 
-### toArray
+### toArray <>
 
 ```java
 Object[] array = empresa.getVehiculos()

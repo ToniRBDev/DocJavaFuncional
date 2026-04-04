@@ -1,5 +1,6 @@
 package vista;
 
+import logica.LogicaEmpresaAlquiler;
 import modelo.Alquiler;
 import modelo.Cliente;
 import modelo.EmpresaAlquilerVehiculos;
@@ -69,5 +70,17 @@ public class MostrarDatos {
         }
 
         System.out.println("\n=================================\n");
+    }
+
+    /**
+     * Método estático que muestra las marcas de todas las furgonetas ordenadas alfabéticamente
+     * @param empresa de tipo EmpresaAlquilerVehiculos
+     */
+    public static void mostrarTodasLasMarcasDeFurgonetasOrdenadasAlfabéticamente(EmpresaAlquilerVehiculos empresa) {
+        System.out.println("Marcas de furgonetas ordenadas alfabéticamente:");
+        LogicaEmpresaAlquiler.marcasDeFurgonetas(empresa)
+                .stream()
+                .sorted()
+                .forEach(System.out::println);
     }
 }
