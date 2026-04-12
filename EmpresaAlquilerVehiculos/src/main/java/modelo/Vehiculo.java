@@ -52,6 +52,10 @@ public abstract class Vehiculo implements ValidadorVehiculoI {
         return disponible;
     }
 
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+
     public int getKilometros() {
         return kilometros;
     }
@@ -63,6 +67,7 @@ public abstract class Vehiculo implements ValidadorVehiculoI {
     public PrecioAlquiler getPrecio() {
         return precio;
     }
+
 
     @Override
     public String toString() {

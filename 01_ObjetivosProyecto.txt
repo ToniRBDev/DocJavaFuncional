@@ -1,4 +1,0 @@
-El objetivo del proyecto es hacer una guía personalizada para entender la API Stream de java y los fundamentos de la programacion funcional, partiendo del documento 01_Tutorial_programación_Java_Funcional_2025.docx que tienes subido en memoria. 
-Requisitos:
-1. Quiero hacer unas clases e interfaces de una temática personalizada y fácil de entender sobre las que utilizar ejemplos de programación funcional.
-2. Lo quiero hacer formato markdown

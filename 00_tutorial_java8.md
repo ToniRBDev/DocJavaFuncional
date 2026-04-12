@@ -1,20 +1,24 @@
 # 📘 Guía de Programación Funcional en Java
 
-> Proyecto práctico basado en gestión de alquiler de vehículos
+> Proyecto práctico basado en el proyecto de empresa de alquiler de vehículos para aplicar los conceptos de programación funcional en Java 8.
 
 ---
 
 # 📑 Índice
 
-1. Introducción a la programación funcional
-2. Interfaces en Java
-3. Expresiones lambda
-4. Interfaces funcionales
-5. Streams
+1. [Introducción a la programación funcional](#intro-funcional)
+2. [Interfaces en Java](#Interfaces-en-java)
+3. [Expresiones lambda](#expresiones-lambda)
+4. [Referencia a métodos](#referencia-a-metodos)
+5. [Interfaces funcionales](#Interfaces-funcionales)
+6. [Streams](#Streams)
+7. [Reducción](#reduccion)
+8. [Optional](#Optional)
 
 ---
 
-# 1. 🧠 Introducción a la programación funcional
+<a id="intro-funcional"></a>
+# 🧠 1. Introducción a la programación funcional
 
 ## 📌 Definición
 
@@ -60,7 +64,8 @@ List<Vehiculo> disponibles = empresa.getVehiculos()
 
 ---
 
-# 2. 🧩 Interfaces en Java
+<a id="Interfaces-en-java"></a>
+# 🧩 2. Interfaces en Java
 
 ## 📌 Definición
 
@@ -136,7 +141,7 @@ Permiten implementar lógica dentro de la interfaz.
 Uso interno dentro de la interfaz.
 
 ---
-
+<a id="expresiones-lambda"></a>
 # 3. 🔗 Expresiones Lambda
 
 ## 📌 Definición
@@ -202,6 +207,7 @@ empresa.getVehiculos()
 
 ---
 
+<a id="referencia-a-metodos"></a>
 # 4. 🔗 Referencia a métodos
 
 ## 📌 Definición
@@ -334,7 +340,7 @@ Usa referencias a métodos cuando:
 
 👉 Las referencias a métodos hacen el código más limpio, pero no siempre sustituyen a las lambdas.
 
-
+<a id="Interfaces-funcionales"></a>
 # 5. ⚙️ Interfaces funcionales
 
 ## 📌 Definición
@@ -468,6 +474,7 @@ System.out.println(multiplicar.aplicar(4, 6)); // 24
 
 ---
 
+<a id="Streams"></a>
 # 6. 🌊 Streams
 
 ## 📌 Definición
@@ -705,26 +712,33 @@ Devuelve un Stream que omite los primeros n elementos
 Muy útil para implementar paginación. 
 
 ```java
-//Útil para mostrar los vehículos por páginas en el frontend. 
 /**
- * Método estático que permite paginar los vehículos de la empresa
- * @param empresa de tipo EmpresaAlquilerVehiculos
- * @param pagina de tipo int
- * @param tamanioPagina de tipo int
- * @return lista de vehículos del tamaño indicado en la página indicada
+ * Método estático una lista con los vehiculos paginados
+ * @param empresa sobre la cuál paginar los vehículos
+ * @param pagina página a obtener
+ * @param tamanioPagina que va a tener la paginación
+ * @return lista de vehículos paginados
  */
-public static List<Vehiculo> obtenerVehiculosPaginados(EmpresaAlquilerVehiculos empresa, int pagina, int tamanioPagina) {
+public static List<Vehiculo> obtenerVehiculosPaginados(
+        EmpresaAlquilerVehiculos empresa,
+        int pagina,
+        int tamanioPagina) {
+
+    int paginaSegura = Math.max(1, pagina);
+    int tamanioSeguro = Math.max(0, tamanioPagina);
+
     return empresa.getVehiculos()
             .stream()
-            .skip((long) (pagina - 1) * tamanioPagina)
-            .limit(tamanioPagina)
+            .sorted(Comparator.comparing(Vehiculo::getMarca))
+            .skip((long) (paginaSegura - 1) * tamanioSeguro)
+            .limit(tamanioSeguro)
             .toList();
 }
 ```
 
 ---
 
-### concat <Stream1, Stream2, StreamFinalFusionado>
+### concat `<Stream1, Stream2, StreamFinalFusionado>`
 Es un método `estático` que concatena dos streams, no es un método de Stream.
 ```java
 //La siguiente operación puede ser útil para evaluar una posible fusión o colaboración entre 2 negocios
@@ -751,7 +765,7 @@ public static List<Cliente> todosLosClientesDe2Empresas(EmpresaAlquilerVehiculos
 
 ## 🔹 Principales operaciones terminales:
 
-### forEach <Consumer<T>>
+### forEach `<Consumer<T>>`
 Aplica una acción a cada elemento del Stream
 
 ```java
@@ -770,122 +784,970 @@ public static void mostrarTodasLasMarcasDeFurgonetasOrdenadasAlfabéticamente(Em
 
 ---
 
-### toArray <>
+### toArray `<Stream, Array>`
 
 ```java
-Object[] array = empresa.getVehiculos()
-    .toArray();
+/**
+ * Método estático que obtiene un array con la potencia de cada coche de la empresa
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return array con la potencia de cada coche de la empresa
+ */
+public static int[] potenciaDeCadaCoche(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Coche)
+            .map(coche -> (Coche) coche)
+            .mapToInt(Coche::getPotencia)
+            .toArray();
+}
 ```
 
 ---
 
 ### min / max
+Encuentra el mínimo y el máximo elemento del Stream según, un comparador, excepto que sea un Stream primitivo.
 
 ```java
-Vehiculo maxKm = empresa.getVehiculos()
-    .stream()
-    .max(Comparator.comparing(Vehiculo::getKilometros))
-    .orElse(null);
+//-----MAX-----
+/**
+ * Método estático que obtiene el cliente con el alquiler más caro
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return cliente con el alquiler más caro
+ */
+    public static Cliente encontrarClienteConElAlquilerMasCaro(EmpresaAlquilerVehiculos empresa){
+    return empresa.getClientes()
+            .stream()
+            .max(Comparator.comparing(cliente -> cliente.getAlquileres()
+                    .stream()
+                    .mapToDouble(Alquiler::getPrecioTotal)
+                    .max()
+                    .orElse(0)))
+            .orElse(null);
+    }
+
+//-----MIN-----
+    /**
+ * Método estático que obtiene el coche más barato de alquilar por día
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return coche más barato por día
+ */
+    public static Coche obtenerCocheMasBaratoPorDia(EmpresaAlquilerVehiculos empresa){
+        return empresa.getVehiculos()
+                .stream()
+                .filter(vehiculo -> vehiculo instanceof Coche)
+                .map(vehiculo -> (Coche) vehiculo)
+                .min(Comparator.comparing(coche -> coche.getPrecio().getPrecioPorDia()))
+                .orElse(null);
+    }
 ```
 
 ---
 
 ### count
+Devuelve el número de elementos del Stream
 
 ```java
-long total = empresa.getVehiculos()
-    .stream()
-    .count();
+/**
+ * Cuenta el número de vehículos disponibles en la empresa.
+ *
+ * <p>El método recorre la lista de vehículos de la empresa y filtra aquellos
+ * que están disponibles. Posteriormente, utiliza la operación terminal {@code count}
+ * para obtener el número total de vehículos disponibles.</p>
+ *
+ * @param empresa empresa sobre la cual se realizará el conteo
+ * @return número total de vehículos disponibles
+ */
+public static long contarTotalVehiculosDisponibles(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .filter(Vehiculo::isDisponible)
+            .count();
+}
 ```
 
 ---
 
-### anyMatch / allMatch / noneMatch
+### anyMatch / allMatch / noneMatch `<Predicate>`
+Devuelven true o false aplicando un predicado a todos los elementos del Stream
+- `anYMatch` si algún elmento cumple la condición
+- `allMatch` si todos los elementos cumplen la condición
+- `noneMatch` si ningún elemento cumple la condición
+
 
 ```java
-boolean hayDisponibles = empresa.getVehiculos()
-    .stream()
-    .anyMatch(Vehiculo::isDisponible);
+//----ANYMATCH----
+/**
+ * Comprueba si existe al menos una furgoneta que tenga un número de plazas
+ * mayor o igual al indicado.
+ * @param empresa empresa sobre la cual se realizará la comprobación
+ * @param numeroPlazasIndicadas número mínimo de plazas que debe tener la furgoneta
+ * @return {@code true} si existe al menos una furgoneta con ese número de plazas o más,
+ *         {@code false} en caso contrario
+ */
+public static boolean comprobarSiHayFurgonetaDisponibleConMinimoPlazas(
+        EmpresaAlquilerVehiculos empresa, int numeroPlazasIndicadas){
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Furgoneta)
+            .map(vehiculo -> (Furgoneta) vehiculo)
+            .anyMatch(furgoneta -> furgoneta.getCapacidadPasajeros() >= numeroPlazasIndicadas
+                        && furgoneta.isDisponible());
+}
+//----ALLMATCH----
+/**
+ * Comprueba si todos los vehículos de la empresa tienen un número de kilómetros
+ * inferior al límite indicado.
+ * <p>Si la empresa no tiene vehículos, el método devolverá {@code true}
+ * @param empresa empresa sobre la cual se realizará la comprobación
+ * @param limiteKilometros límite máximo de kilómetros permitido
+ * @return {@code true} si todos los vehículos tienen menos kilómetros que el límite,
+ *         {@code false} si al menos uno lo supera
+ */
+public static boolean comprobarQueTodosLosVehiculosTenganMenosDeXkilometros(
+        EmpresaAlquilerVehiculos empresa, int limiteKilometros) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .allMatch(vehiculo -> vehiculo.getKilometros() < limiteKilometros);
+}
+//----NONEMATCH----
+/**
+ * Comprueba si todos los clientes de la empresa tienen al menos un alquiler.
+ * <p>Si la empresa no tiene clientes, el método devolverá {@code true}
+ * @param empresa empresa sobre la cual se realizará la comprobación
+ * @return {@code true} si todos los clientes tienen al menos un alquiler,
+ *         {@code false} si existe algún cliente sin alquileres
+ */
+public static boolean comprobarSiTodosClientesTienenAlquileres(
+        EmpresaAlquilerVehiculos empresa) {
+    return empresa.getClientes()
+            .stream()
+            .noneMatch(cliente -> cliente.getAlquileres().isEmpty());
+}
 ```
 
 ---
 
-### findFirst / findAny
-
+### findFirst / findAny. `<Optional>`
+- `findFirst`
 ```java
-Vehiculo primero = empresa.getVehiculos()
-    .stream()
-    .findFirst()
-    .orElse(null);
+/**
+ * Método estático que obtiene el coche disponible con el precio por día más barato.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @return un {@code Optional<Coche>} con el coche disponible más barato,
+ *         o vacío si no existe ninguno
+ */
+public static Optional<Coche> obtenerCocheMasBaratoDisponible(
+        EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Coche)
+            .map(vehiculo -> (Coche) vehiculo)
+            .filter(Coche::isDisponible)
+            .sorted(Comparator.comparing(coche -> coche.getPrecio().getPrecioPorDia()))
+            .findFirst();
+}
+```
+
+- `findAny`
+```java
+/**
+ * Método estático que obtiene una moto de tipo Enduro disponible cualquiera.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return un {@code Optional<Moto>} con una moto Enduro disponible,
+ *         o vacío si no existe ninguna
+ */
+public static Optional<Moto> obtenerMotoEnduroDisponible(EmpresaAlquilerVehiculos empresa){
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Moto)
+            .map(vehiculo -> (Moto) vehiculo)
+            .filter(moto -> moto.getTipoMoto() == TipoMoto.ENDURO)
+            .filter(Moto::isDisponible)
+            .findAny();
+}
 ```
 
 ---
 
-## 🔻 Reducción
+<a id="reduccion"></a>
+## 7. 🔻 Reducción
 
 ## 📌 Definición
 
 Proceso de convertir múltiples valores en uno solo.
 
+## Principales operaciones de reducción generales: `reduce()` y `collect()`
+
 ---
 
-### reduce
+### reduce `<accumulator, BinaryOperator<T>>`
+- Reduce los elementos del Stream a un único valor aplicanto iterativamente un operador binario
+#### Usos reales:
+- elegir el mejor elemento
+- concatenar valores
+- transformar estructuras
+- acumular múltiples cosas
+- crear lógica personalizada
 
+- En este caso lo utilizaremos com acumulador
 ```java
-int sumaKm = empresa.getVehiculos()
-    .stream()
-    .map(Vehiculo::getKilometros)
-    .reduce(0, Integer::sum);
+/**
+ * Método estático que calcula el importe total generado por todos los alquileres actuales de la empresa.
+ * @param empresa empresa sobre la cual se realizará el cálculo
+ * @return importe total generado por todos los alquileres
+ */
+public static double calcularIngresosTotalesDeAlquileresActuales(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getClientes()
+            .stream()
+            .flatMap(cliente -> cliente.getAlquileres().stream())
+            .map(Alquiler::getPrecioTotal)
+            .reduce(0.0, Double::sum);
+}
+
+// Forma completa para entenderlo mejor:
+.reduce(0.0, (total, precio) -> total + precio)
+```
+
+- En este caso lo utilizaremos para quedarnos con el mejor valor
+```java
+/**
+ * Método estático que obtiene el vehículo con más kilómetros recorridos.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @return el vehículo con más kilómetros recorridos, o {@code null} si no hay vehículos
+ */
+public static Vehiculo obtenerVehiculoConMasKilometros(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .reduce((vehiculo1, vehiculo2) ->
+                    vehiculo1.getKilometros() > vehiculo2.getKilometros() ? vehiculo1 : vehiculo2)
+            .orElse(null);
+}
 ```
 
 ---
 
-### collect (Collector)
+### collect `(Collector<T,A,R> collector)`
+Se utiliza para transformar los elementos de un stream en una forma diferente utilizando un objeto `Collector`
+
+- Las principales operaciones proporcionadas por la clase colectors son: 
 
 #### toList
+Almacena en una lista los elementos del Stream
 
 ```java
-List<Vehiculo> lista = empresa.getVehiculos()
-    .stream()
-    .toList();
+/**
+ * Método estático que obtiene una lista de las furgonetas disponibles.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @return lista de furgonetas disponibles
+ */
+public static List<Furgoneta> obtenerFurgonetasDisponibles(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Furgoneta)
+            .map(vehiculo -> (Furgoneta) vehiculo)
+            .filter(Furgoneta::isDisponible)
+            .collect(Collectors.toList());
+}
 ```
+- La principal diferecia entre .toList() y .collect(Collectors.toList()) es que la lista creada con collect es mutable.
+- En el anterior método, una vez que obtenga la lista, le puedo añadir una nueva furgoneta, si hubiera utilizado .toList() no.
 
 ---
 
-#### groupingBy
+#### groupingBy `<Function<T,K>,Map>`
+- Agrupa los elementos y devuelve el resultado en un Map con clave el método de agrupación y la lista de valores
 
 ```java
-Map<TipoCombustible, List<Vehiculo>> agrupados =
-    empresa.getVehiculos()
-        .stream()
-        .collect(Collectors.groupingBy(Vehiculo::getTipoCombustible));
+/**
+ * Método estático que agrupa los vehículos de la empresa por tipo de combustible.
+ * @param empresa empresa sobre la cual se realizará la agrupación
+ * @return mapa con los vehículos agrupados por tipo de combustible
+ */
+public static Map<TipoCombustible, List<Vehiculo>> agruparVehiculosPorTipoCombustible(
+        EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .collect(Collectors.groupingBy(Vehiculo::getTipoCombustible));
+}
 ```
+---
 
+#### joining `<StreamString, StringConcatenado>`
+- Convierte un Stream de String en un único String
+- Puedes indicar por parámetro un elemento de separación
+```java
+/**
+ * Método estático que obtiene un String con todas las matrículas de los vehículos separadas por coma.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @return cadena con las matrículas de los vehículos
+ */
+public static String obtenerMatriculasVehiculos(EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .map(Vehiculo::getMatricula)
+            .collect(Collectors.joining(", "));
+}
+```
 ---
 
 #### counting
-
+Cuenta el número de elementos del Stream
+- En el siguiente ejemplo lo utilizamos junto un groupinBy (Es muy utilizado)
 ```java
-long total = empresa.getVehiculos()
-    .stream()
-    .collect(Collectors.counting());
+/**
+ * Método estático que cuenta el número de vehículos por tipo de combustible.
+ * @param empresa empresa sobre la cual se realizará el conteo
+ * @return mapa con el número de vehículos por tipo de combustible
+ */
+public static Map<TipoCombustible, Long> contarVehiculosPorTipoCombustible(
+        EmpresaAlquilerVehiculos empresa) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .collect(Collectors.groupingBy(
+                    Vehiculo::getTipoCombustible,  // En vez de devolver una lista como valor devolvemos un contador de elementos por clave
+                    Collectors.counting()
+            ));
+}
 ```
 
 ---
 
-#### toMap
+#### partitioningBy <Predicate, Map<Boolean, List<T>>>
+- Divide el Stream en dos grupos según un predicado, devuelve un Map con clave true y false
+- Es útil para dividir los elementos en dos grupos basados en una condición.
 
 ```java
-Map<String, Vehiculo> mapa =
-    empresa.getVehiculos()
-        .stream()
-        .collect(Collectors.toMap(
-            Vehiculo::getMatricula,
-            v -> v
-        ));
+/**
+ * Método estático que divide los vehículos de la empresa en disponibles y no disponibles.
+ * <p>
+ * Utiliza {@code partitioningBy} para agrupar los vehículos en dos listas:
+ * una con los disponibles (true) y otra con los no disponibles (false).
+ * </p>
+ * @param empresa empresa sobre la cual se realizará la partición
+ * @return mapa con dos entradas:
+ *         {@code true} -> vehículos disponibles
+ *         {@code false} -> vehículos no disponibles
+ */
+public static Map<Boolean, List<Vehiculo>> particionarVehiculosPorDisponibilidad(
+        EmpresaAlquilerVehiculos empresa) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .collect(Collectors.partitioningBy(Vehiculo::isDisponible));
+}
+```
+
+#### toMap <Stream<T>, Map<K,V>>
+- Convierte un Stream en un Map, indicando cómo obtener la clave y el valor a partir de los elementos del Stream
+
+```java
+/**
+ * Método estático que convierte la lista de vehículos en un mapa usando la matrícula como clave.
+ *
+ * <p>
+ * Cada vehículo de la empresa se almacena en el mapa donde la clave es su matrícula
+ * y el valor es el propio objeto {@code Vehiculo}.
+ * </p>
+ *
+ * @param empresa empresa sobre la cual se realizará la conversión
+ * @return mapa con la matrícula como clave y el vehículo como valor
+ */
+public static Map<String, Vehiculo> mapearVehiculosPorMatricula(
+        EmpresaAlquilerVehiculos empresa) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .collect(Collectors.toMap(
+                    Vehiculo::getMatricula,
+                    vehiculo -> vehiculo
+            ));
+}
 ```
 
 ---
+
+#### mapping <Function, Collector>
+- Permite aplicar una función de mapeo a los elementos antes de realizar una operación de reducción
+```java
+/**
+ * Método estático que agrupa las matrículas de los vehículos por tipo de combustible.
+ * <p>
+ * Utiliza {@code groupingBy} junto con {@code mapping} para transformar
+ * los vehículos en sus matrículas dentro de cada grupo.
+ * </p>
+ * @param empresa empresa sobre la cual se realizará la agrupación
+ * @return mapa con el tipo de combustible como clave y una lista de matrículas como valor
+ */
+public static Map<TipoCombustible, List<String>> agruparMatriculasPorCombustible(
+        EmpresaAlquilerVehiculos empresa) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .collect(Collectors.groupingBy(
+                    Vehiculo::getTipoCombustible,
+                    Collectors.mapping(Vehiculo::getMatricula, Collectors.toList()) //Mapear cada vehículo a su matrícula antes de agruparlos en la lista final
+            ));
+}
+```
+---
+
+### Collector por partes
+- Un Collector se puede construir por partes utilizando las siguientes funciones:
+- `supplier`: Proporciona una nueva instancia del contenedor de resultados
+- `accumulator`: Agrega un elemento al contenedor de resultados
+- `combiner`: Combina dos contenedores de resultados (en caso de procesamiento paralelo)
+- `finisher`: Transforma el contenedor de resultados en el resultado final (opcional, si el contenedor es del mismo tipo que el resultado, no es necesario)
+
+```java
+/**
+ * Método estático que cuenta el número de vehículos disponibles utilizando un Collector personalizado.
+ *
+ * <p>
+ * Se construye el Collector manualmente utilizando supplier, accumulator,
+ * combiner y finisher para comprender su funcionamiento.
+ * </p>
+ *
+ * @param empresa empresa sobre la cual se realizará el conteo
+ * @return número de vehículos disponibles
+ */
+public static int contarVehiculosDisponiblesCollector(EmpresaAlquilerVehiculos empresa) {
+
+    return empresa.getVehiculos()
+            .stream()
+            .filter(Vehiculo::isDisponible)
+            .collect(Collector.of(
+                    () -> new int[1],  // 1. supplier
+                    (contador, vehiculo) -> contador[0]++,   // 2. accumulator
+                    (contenedor1, contenedor2) -> {          // 3. combiner
+                        contenedor1[0] += contenedor2[0];
+                        return contenedor1;
+                    },
+                    contador -> contador[0] // 4. finisher
+            ));
+}
+```
+### Explicación del `Collector` por partes
+
+En este ejemplo se construye un `Collector` manualmente para contar cuántos vehículos disponibles hay en la empresa.
+
+La estructura general de un `Collector` es:
+
+1. **supplier** → crea el contenedor inicial  
+2. **accumulator** → añade elementos al contenedor  
+3. **combiner** → une contenedores parciales  
+4. **finisher** → transforma el contenedor en el resultado final  
+
+---
+
+#### 1. `supplier`
+
+```java
+() -> new int[1]
+```
+
+Se encarga de crear el contenedor inicial donde se irá guardando el resultado.
+
+En este caso se usa un array de enteros de una sola posición:
+
+- `int[1]` permite almacenar un contador
+- la posición `0` será donde se irá acumulando el total
+
+👉 Al principio el contador vale `0`.
+
+---
+
+#### 2. `accumulator`
+
+```java
+(contador, vehiculo) -> contador[0]++
+```
+
+Se ejecuta una vez por cada elemento del stream.
+
+Su función es añadir cada vehículo al resultado acumulado.  
+Como en este caso queremos contar vehículos, simplemente incrementamos el contador en 1 por cada elemento que llega.
+
+- `contador` es el array que actúa como contenedor
+- `vehiculo` es cada vehículo del stream
+
+👉 Cada vez que entra un vehículo disponible, el contador aumenta en 1.
+
+---
+
+#### 3. `combiner`
+
+```java
+(contenedor1, contenedor2) -> {
+    contenedor1[0] += contenedor2[0];
+    return contenedor1;
+}
+```
+
+Sirve para combinar dos contenedores parciales en uno solo.
+
+Esto es especialmente importante si el stream se ejecuta en paralelo, porque puede haber varios contadores parciales y después hay que unirlos.
+
+En este caso:
+
+- `contenedor1[0]` contiene un recuento parcial
+- `contenedor2[0]` contiene otro recuento parcial
+- ambos se suman en `contenedor1`
+
+👉 El resultado final será la suma de todos los contadores parciales.
+
+---
+
+#### 4. `finisher`
+
+```java
+contador -> contador[0]
+```
+
+Transforma el contenedor interno en el resultado final que devolverá el método.
+
+Durante el proceso interno se usa un `int[]`, pero el método no quiere devolver un array, sino un número entero.
+
+Por eso, en el paso final:
+
+- se toma el array `contador`
+- se devuelve su posición `0`
+
+👉 Así el resultado final del `Collector` es un `int`.
+
+---
+
+### Resumen conceptual
+
+Este `Collector` sigue el flujo:
+
+crear contenedor → acumular elementos → combinar resultados → devolver valor final
+
+En este caso concreto:
+
+- el contenedor interno es un `int[]`
+- cada vehículo disponible suma 1
+- si hay varios contadores parciales, se combinan
+- al final se devuelve el total como un `int`
+
+---
+
+### Idea importante
+
+Este ejemplo no es la forma más habitual de contar elementos, ya que para eso normalmente se utilizaría:
+
+```java
+.count()
+```
+
+Pero construirlo manualmente con `Collector.of(...)` es muy útil para entender cómo funciona un `Collector` internamente.
+
+<a id="Optional"></a>
+# 8. 📦 Optional
+
+## 📌 Definición
+
+`Optional` es un contenedor de objetos introducido en Java 8 que permite representar de forma explícita que un valor puede estar presente o ausente.
+
+👉 Su objetivo principal es evitar errores como `NullPointerException` y hacer el código más seguro y legible cuando trabajamos con valores que podrían no existir.
+
+---
+
+## 🧠 Idea clave
+
+En lugar de devolver `null`, un método puede devolver un `Optional<T>` para indicar que:
+
+- puede haber un valor
+- o puede no haberlo
+
+Esto obliga a tratar ambos casos de manera más clara.
+
+---
+
+## 1. 🏗️ Creación de un Optional
+
+Se puede crear un `Optional` de varias formas:
+
+### 🔹 `Optional.of(valor)`
+
+Crea un `Optional` con un valor que **no puede ser nulo**.
+
+```java
+Optional<String> nombre = Optional.of("Juan");
+```
+
+⚠️ Si se le pasa `null`, lanzará una excepción `NullPointerException`.
+
+---
+
+### 🔹 `Optional.ofNullable(valor)`
+
+Crea un `Optional` con un valor que **puede ser nulo**.
+
+```java
+Optional<String> nombre = Optional.ofNullable("Juan");
+Optional<String> nombreVacio = Optional.ofNullable(null);
+```
+
+Si el valor es `null`, el resultado será un `Optional` vacío.
+
+---
+
+### 🔹 `Optional.empty()`
+
+Crea directamente un `Optional` vacío.
+
+```java
+Optional<String> vacio = Optional.empty();
+```
+
+---
+
+## 2. 🔍 Verificar si un Optional contiene valor
+
+Para comprobar si un `Optional` tiene contenido se pueden usar métodos como:
+
+- `isPresent()`
+- `isEmpty()`
+
+```java
+Optional<String> optionalValue = Optional.of("Hola, mundo");
+
+boolean tieneValor = optionalValue.isPresent(); // true
+boolean estaVacio = optionalValue.isEmpty();    // false
+```
+
+---
+
+## 3. 📥 Obtener el valor de un Optional
+
+### ⚠️ `get()`
+
+Permite obtener el valor contenido en el `Optional`.
+
+```java
+Optional<String> nombre = Optional.of("Juan");
+String valor = nombre.get();
+```
+
+⚠️ No es la opción más recomendable, porque si el `Optional` está vacío lanzará una excepción `NoSuchElementException`.
+
+Por eso, en la práctica se suelen usar alternativas más seguras.
+
+---
+
+### 🔹 `orElse(valorPorDefecto)`
+
+Devuelve el valor contenido en el `Optional`, o un valor alternativo si está vacío.
+
+```java
+Optional<String> nombre = Optional.ofNullable(null);
+
+String resultado = nombre.orElse("Nombre predeterminado");
+
+System.out.println(resultado);
+```
+
+Resultado:
+
+```java
+Nombre predeterminado
+```
+
+---
+
+### 🔹 `orElseGet(Supplier<? extends T> supplier)`
+
+Devuelve el valor contenido en el `Optional`, o genera uno nuevo usando una función si está vacío.
+
+```java
+Optional<String> nombre = Optional.ofNullable(null);
+
+String resultado = nombre.orElseGet(() -> "No hay nombre");
+
+System.out.println(resultado);
+```
+
+Resultado:
+
+```java
+No hay nombre
+```
+
+👉 La diferencia con `orElse()` es que aquí el valor alternativo se calcula de forma **perezosa (lazy)**, solo si hace falta.
+
+---
+
+### 🔹 `orElseThrow(Supplier<? extends X> exceptionSupplier)`
+
+Devuelve el valor si está presente, o lanza una excepción personalizada si no lo está.
+
+```java
+Optional<String> nombre = Optional.ofNullable(null);
+
+String resultado = nombre.orElseThrow(() ->
+        new IllegalArgumentException("El valor no está presente en el Optional")
+);
+```
+
+---
+
+### 🔹 `ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction)`
+
+Ejecuta una acción si el valor está presente y otra distinta si está ausente.
+
+```java
+Optional<String> nombre = Optional.ofNullable("Juan");
+
+nombre.ifPresentOrElse(
+        valor -> System.out.println("El nombre es: " + valor),
+        () -> System.out.println("No se proporcionó un nombre")
+);
+```
+
+---
+
+## 4. ⚙️ Operaciones con Optional
+
+Un `Optional` también permite transformar y filtrar su contenido de forma segura.
+
+---
+
+### 🔹 `map()`
+
+Transforma el valor si está presente.
+
+```java
+Optional<String> optionalValue = Optional.of("Hola, mundo");
+Optional<Integer> lengthOptional = optionalValue.map(String::length);
+```
+
+En este caso:
+
+- el `Optional` original contiene un `String`
+- tras aplicar `map`, obtenemos un `Optional<Integer>` con la longitud del texto
+
+---
+
+### 🔹 `filter()`
+
+Permite mantener el valor solo si cumple una condición.
+
+```java
+Optional<String> nombre = Optional.of("Juan");
+
+Optional<String> resultado = nombre.filter(n -> n.length() > 3);
+```
+
+Si la condición no se cumple, el resultado será un `Optional` vacío.
+
+---
+
+### 🔹 `flatMap()`
+
+Se usa cuando la transformación ya devuelve otro `Optional`, evitando crear un `Optional<Optional<T>>`.
+
+```java
+Optional<String> texto = Optional.of("123");
+
+Optional<Integer> numero = texto.flatMap(valor -> {
+    try {
+        return Optional.of(Integer.parseInt(valor));
+    } catch (NumberFormatException e) {
+        return Optional.empty();
+    }
+});
+```
+
+---
+
+# 🚀 Ejemplos con el proyecto práctico de empresa de alquiler
+
+En tu proyecto ya tienes métodos que trabajan muy bien con `Optional`, por ejemplo:
+
+- buscar el coche disponible más barato
+- obtener una moto Enduro disponible
+
+Esto encaja muy bien con este enfoque, porque en esos casos:
+
+- puede existir un resultado
+- o puede no existir ninguno
+
+---
+
+### ✔ Obtener el coche disponible más barato
+
+```java
+/**
+ * Método estático que obtiene el coche disponible con el precio por día más barato.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @return un {@code Optional<Coche>} con el coche disponible más barato,
+ *         o vacío si no existe ninguno
+ */
+public static Optional<Coche> obtenerCocheMasBaratoDisponible(
+        EmpresaAlquilerVehiculos empresa) {
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Coche)
+            .map(vehiculo -> (Coche) vehiculo)
+            .filter(Coche::isDisponible)
+            .sorted(Comparator.comparing(coche -> coche.getPrecio().getPrecioPorDia()))
+            .findFirst();
+}
+```
+
+👉 Aquí se devuelve un `Optional<Coche>` y lo tratamos correctamente cuando llamamos al método:
+
+
+
+### ✔ Obtener una moto Enduro disponible
+
+```java
+/**
+ * Método estático que obtiene una moto de tipo Enduro disponible cualquiera.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @return un {@code Optional<Moto>} con una moto Enduro disponible,
+ *         o vacío si no existe ninguna
+ */
+public static Optional<Moto> obtenerMotoEnduroDisponible(EmpresaAlquilerVehiculos empresa){
+    return empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo instanceof Moto)
+            .map(vehiculo -> (Moto) vehiculo)
+            .filter(moto -> moto.getTipoMoto() == TipoMoto.ENDURO)
+            .filter(Moto::isDisponible)
+            .findAny();
+}
+```
+
+👉 En este caso también se utiliza `Optional` porque puede que no exista ninguna moto Enduro disponible en ese momento.
+
+---
+
+### ✔ Obtener un vehículo por su matrícula
+
+```java
+/**
+ * Método estático que busca un vehículo por su matrícula.
+ * @param empresa empresa sobre la cual se realizará la búsqueda
+ * @param matricula matrícula del vehículo a buscar
+ * @return un {@code Optional<Vehiculo>} con el vehículo encontrado,
+ *         o vacío si no existe ninguno con esa matrícula
+ */
+public static Optional<Vehiculo> buscarVehiculoPorMatricula(
+        EmpresaAlquilerVehiculos empresa, String matricula) {
+
+    Vehiculo vehiculoObtenido = empresa.getVehiculos()
+            .stream()
+            .filter(vehiculo -> vehiculo.getMatricula().equalsIgnoreCase(matricula))
+            .findFirst()
+            .orElse(null);
+
+    return Optional.ofNullable(vehiculoObtenido);
+}
+
+```
+
+👉 En este caso también se utiliza `Optional` porque puede que no exista ningún coche con esa matrícula
+---
+
+## ✔ Uso de `ifPresentOrElse` en el proyecto
+
+Tratamos el resultado del Optional de forma clara, mostrando un mensaje si hay resultado o si no lo hay:
+
+```java
+/**
+ * Muestra el coche disponible más barato por día
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ */
+public static void mostrarCocheMasBaratoDisponible(EmpresaAlquilerVehiculos empresa) {
+    Optional<Coche> cocheOpt =
+            LogicaEmpresaAlquiler.obtenerCocheMasBaratoDisponible(empresa);
+    System.out.println("🚗 Coche disponible más barato:");
+    cocheOpt.ifPresentOrElse(
+            coche -> System.out.println("✅ " + coche.getMarca() + " " + coche.getModelo()
+                    + " | Precio/día: " + coche.getPrecio().getPrecioPorDia()),  // Si el coche está presente
+            () -> System.out.println("❌ No hay coches disponibles") // Si el Optional está vacío
+    );
+}
+```
+
+---
+
+```java
+    /**
+     * Método estático que muestra una moto enduro disponible, si es que la hay
+     * @param empresa de tipo EmpresaAlquilerVehiculos
+     */
+    public static void mostrarMotoEnduroDisponible(EmpresaAlquilerVehiculos empresa) {
+        Optional<Moto> motoObtenida =
+                LogicaEmpresaAlquiler.obtenerMotoEnduroDisponible(empresa);
+        System.out.println("🏍️ Moto Enduro disponible:");
+
+        motoObtenida.ifPresentOrElse(
+                moto -> System.out.println("✅ " + moto.getMarca() + " " + moto.getModelo()
+                        + " | Matrícula: " + moto.getMatricula()),
+                () -> System.out.println("❌ No hay motos Enduro disponibles")
+        );
+    }
+```
+---
+
+```java
+/**
+ * Método estático que muestra un vehículo buscado por matrícula.
+ * @param empresa de tipo EmpresaAlquilerVehiculos
+ * @param matricula de tipo String
+ */
+public static void mostrarVehiculoPorMatricula(
+        EmpresaAlquilerVehiculos empresa, String matricula) {
+
+    System.out.println("🔍 Búsqueda de vehículo por matrícula:");
+
+    Optional<Vehiculo> vehiculoOpt =
+            LogicaEmpresaAlquiler.buscarVehiculoPorMatricula(empresa, matricula);
+
+    vehiculoOpt.ifPresentOrElse(
+            vehiculo -> System.out.println(
+                    "✅ Vehículo encontrado: " +
+                            vehiculo.getMarca() + " " + vehiculo.getModelo() +
+                            " | Matrícula: " + vehiculo.getMatricula() +
+                            " | Km: " + vehiculo.getKilometros()
+            ),
+            () -> System.out.println("❌ No existe vehículo con matrícula: " + matricula)
+    );
+}
+```
+
+
+👉 Este enfoque es muy claro porque trata directamente ambos casos:
+
+- si hay valor, se muestra
+- si no lo hay, se informa por consola
+
+---
+
+## 📌 Buenas prácticas con Optional
+
+- Usar `Optional` cuando un método puede no devolver resultado
+- Evitar usar `get()` salvo que estemos completamente seguros de que hay valor
+- Preferir `orElse`, `orElseGet`, `orElseThrow` o `ifPresentOrElse`
+- Utilizar `map`, `filter` y `flatMap` para trabajar de forma segura y expresiva
+
+---
+
+## 📌 Resumen final
+
+`Optional` permite expresar de forma clara que un valor puede estar presente o ausente.
+
+Sus ventajas principales son:
+
+- reduce el riesgo de `NullPointerException`
+- mejora la legibilidad del código
+- obliga a tratar explícitamente el caso en que no haya resultado
+- encaja muy bien con Streams y programación funcional
+- 
 
 # 📌 Notas finales
 
